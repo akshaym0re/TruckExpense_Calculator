@@ -3,11 +3,13 @@ import { TripColumnForm } from './components/TripColumnForm';
 import { ResultsView } from './components/ResultsView';
 import { calculateTrip } from './calculations';
 import { EMPTY_TRIP_INPUTS, type TripInputs, type TripResults } from './types';
+import { useLanguage } from './i18n/LanguageContext';
 import './App.css';
 
 function App() {
   const [trip, setTrip] = useState<TripInputs>(EMPTY_TRIP_INPUTS);
   const [results, setResults] = useState<TripResults | null>(null);
+  const { language, setLanguage, t } = useLanguage();
 
   function handleCalculate() {
     setResults(calculateTrip(trip));
@@ -25,8 +27,24 @@ function App() {
           </svg>
         </div>
         <div className="brand-text">
-          <h1 className="brand-title">Truck Expense Calculator</h1>
-          <p className="brand-subtitle">Estimate diesel, tolls, and other trip costs to see your real profit</p>
+          <h1 className="brand-title">{t.appTitle}</h1>
+          <p className="brand-subtitle">{t.appSubtitle}</p>
+        </div>
+        <div className="language-toggle" role="group" aria-label="Language">
+          <button
+            type="button"
+            className={language === 'en' ? 'is-active' : ''}
+            onClick={() => setLanguage('en')}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            className={language === 'mr' ? 'is-active' : ''}
+            onClick={() => setLanguage('mr')}
+          >
+            मर
+          </button>
         </div>
       </header>
       <div className="content">
@@ -35,16 +53,14 @@ function App() {
         </div>
         <aside className="summary-panel">
           <div className="summary-inner">
-            <h2>Trip Summary</h2>
+            <h2>{t.tripSummary}</h2>
             <button className="calculate-button" onClick={handleCalculate}>
-              Calculate
+              {t.calculate}
             </button>
             {results ? (
               <ResultsView results={results} />
             ) : (
-              <p className="summary-placeholder">
-                Fill in the trip details and hit Calculate to see the cost breakdown and profit.
-              </p>
+              <p className="summary-placeholder">{t.placeholder}</p>
             )}
           </div>
         </aside>

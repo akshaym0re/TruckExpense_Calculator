@@ -1,53 +1,57 @@
 import type { TripInputs } from '../types';
+import { useLanguage } from '../i18n/LanguageContext';
+import type { Translations } from '../i18n/translations';
 
 interface FieldConfig {
   key: keyof TripInputs;
-  label: string;
+  labelKey: keyof Translations;
   type: 'text' | 'number';
-  unit?: string;
+  unit?: string | keyof Translations;
 }
 
 interface SectionConfig {
-  title: string;
+  titleKey: keyof Translations;
   fields: FieldConfig[];
 }
 
 const SECTIONS: SectionConfig[] = [
   {
-    title: 'Trip Details',
+    titleKey: 'tripDetails',
     fields: [
-      { key: 'loadingLocation', label: 'Loading Location', type: 'text' },
-      { key: 'unloadingLocation', label: 'Unloading Location', type: 'text' },
-      { key: 'distanceToLoadingKm', label: 'Distance to Loading Point', type: 'number', unit: 'km' },
-      { key: 'distanceABKm', label: 'Distance A → B', type: 'number', unit: 'km' },
-      { key: 'approxDays', label: 'Approx. Days to Complete', type: 'number', unit: 'days' },
+      { key: 'loadingLocation', labelKey: 'loadingLocation', type: 'text' },
+      { key: 'unloadingLocation', labelKey: 'unloadingLocation', type: 'text' },
+      { key: 'distanceToLoadingKm', labelKey: 'distanceToLoadingKm', type: 'number', unit: 'km' },
+      { key: 'distanceABKm', labelKey: 'distanceABKm', type: 'number', unit: 'km' },
+      { key: 'approxDays', labelKey: 'approxDays', type: 'number', unit: 'daysUnit' },
     ],
   },
   {
-    title: 'Freight',
+    titleKey: 'freight',
     fields: [
-      { key: 'tonnage', label: 'Tonnage of Vehicle', type: 'number', unit: 't' },
-      { key: 'ratePerTonne', label: 'Rate per Tonne', type: 'number', unit: '₹' },
+      { key: 'tonnage', labelKey: 'tonnage', type: 'number', unit: 't' },
+      { key: 'ratePerTonne', labelKey: 'ratePerTonne', type: 'number', unit: '₹' },
     ],
   },
   {
-    title: 'Fuel',
+    titleKey: 'fuel',
     fields: [
-      { key: 'mileageKmPerL', label: 'Mileage of Truck', type: 'number', unit: 'km/l' },
-      { key: 'dieselRatePerL', label: 'Diesel Rate', type: 'number', unit: '₹/l' },
+      { key: 'mileageKmPerL', labelKey: 'mileageKmPerL', type: 'number', unit: 'km/l' },
+      { key: 'dieselRatePerL', labelKey: 'dieselRatePerL', type: 'number', unit: '₹/l' },
     ],
   },
   {
-    title: 'Other Charges',
+    titleKey: 'otherCharges',
     fields: [
-      { key: 'tollCost', label: 'Toll Cost', type: 'number', unit: '₹' },
-      { key: 'loadingCharges', label: 'Loading Charges', type: 'number', unit: '₹' },
-      { key: 'unloadingCharges', label: 'Unloading Charges', type: 'number', unit: '₹' },
-      { key: 'transportCommission', label: 'Transport Commission (if any)', type: 'number', unit: '₹' },
-      { key: 'kataBuiltyChahapani', label: 'Kata, Builty, Chahapani', type: 'number', unit: '₹' },
+      { key: 'tollCost', labelKey: 'tollCost', type: 'number', unit: '₹' },
+      { key: 'loadingCharges', labelKey: 'loadingCharges', type: 'number', unit: '₹' },
+      { key: 'unloadingCharges', labelKey: 'unloadingCharges', type: 'number', unit: '₹' },
+      { key: 'transportCommission', labelKey: 'transportCommission', type: 'number', unit: '₹' },
+      { key: 'kataBuiltyChahapani', labelKey: 'kataBuiltyChahapani', type: 'number', unit: '₹' },
     ],
   },
 ];
+
+const UNIT_KEYS = new Set<string>(['daysUnit']);
 
 interface TripColumnFormProps {
   values: TripInputs;
@@ -55,6 +59,8 @@ interface TripColumnFormProps {
 }
 
 export function TripColumnForm({ values, onChange }: TripColumnFormProps) {
+  const { t } = useLanguage();
+
   function handleFieldChange(field: FieldConfig, rawValue: string) {
     onChange({
       ...values,
@@ -62,15 +68,20 @@ export function TripColumnForm({ values, onChange }: TripColumnFormProps) {
     });
   }
 
+  function resolveUnit(unit?: string | keyof Translations): string | undefined {
+    if (!unit) return undefined;
+    return UNIT_KEYS.has(unit) ? t[unit as keyof Translations] : unit;
+  }
+
   return (
     <div className="trip-form">
       {SECTIONS.map((section) => (
-        <section className="form-section" key={section.title}>
-          <h3 className="section-title">{section.title}</h3>
+        <section className="form-section" key={section.titleKey}>
+          <h3 className="section-title">{t[section.titleKey]}</h3>
           <div className="field-grid">
             {section.fields.map((field) => (
               <label key={field.key} className="trip-field">
-                <span>{field.label}</span>
+                <span>{t[field.labelKey]}</span>
                 <div className="input-wrap">
                   <input
                     type={field.type}
@@ -78,7 +89,7 @@ export function TripColumnForm({ values, onChange }: TripColumnFormProps) {
                     value={values[field.key]}
                     onChange={(e) => handleFieldChange(field, e.target.value)}
                   />
-                  {field.unit && <span className="input-unit">{field.unit}</span>}
+                  {field.unit && <span className="input-unit">{resolveUnit(field.unit)}</span>}
                 </div>
               </label>
             ))}

@@ -1,4 +1,6 @@
 import type { TripResults } from '../types';
+import { useLanguage } from '../i18n/LanguageContext';
+import type { Translations } from '../i18n/translations';
 
 interface ResultsViewProps {
   results: TripResults;
@@ -17,27 +19,28 @@ function formatLiters(value: number): string {
 }
 
 interface RowConfig {
-  label: string;
+  labelKey: keyof Translations;
   key: keyof TripResults;
   format: (value: number) => string;
 }
 
 const ROWS: RowConfig[] = [
-  { label: 'Total Freight', key: 'totalFreight', format: formatINR },
-  { label: 'Diesel Consumption', key: 'totalDieselConsumptionL', format: formatLiters },
-  { label: 'Fuel Cost', key: 'fuelCost', format: formatINR },
-  { label: 'Driver Commission', key: 'driverCommission', format: formatINR },
-  { label: 'Net Road Expense', key: 'netRoadExpense', format: formatINR },
-  { label: 'Fixed Overheads', key: 'fixedOverheads', format: formatINR },
-  { label: 'Total Expense', key: 'totalExpense', format: formatINR },
+  { labelKey: 'totalFreight', key: 'totalFreight', format: formatINR },
+  { labelKey: 'totalDieselConsumptionL', key: 'totalDieselConsumptionL', format: formatLiters },
+  { labelKey: 'fuelCost', key: 'fuelCost', format: formatINR },
+  { labelKey: 'driverCommission', key: 'driverCommission', format: formatINR },
+  { labelKey: 'netRoadExpense', key: 'netRoadExpense', format: formatINR },
+  { labelKey: 'fixedOverheads', key: 'fixedOverheads', format: formatINR },
+  { labelKey: 'totalExpense', key: 'totalExpense', format: formatINR },
 ];
 
 export function ResultsView({ results }: ResultsViewProps) {
+  const { t } = useLanguage();
   const isProfit = results.grossProfit >= 0;
   return (
     <div className="results">
       <div className="profit-block">
-        <span className="profit-label">{isProfit ? 'Gross Profit / Trip' : 'Gross Loss / Trip'}</span>
+        <span className="profit-label">{isProfit ? t.grossProfit : t.grossLoss}</span>
         <span className={`profit-value ${isProfit ? 'is-profit' : 'is-loss'}`}>
           {formatINR(Math.abs(results.grossProfit))}
         </span>
@@ -45,7 +48,7 @@ export function ResultsView({ results }: ResultsViewProps) {
       <dl className="results-list">
         {ROWS.map((row) => (
           <div className="results-row" key={row.key}>
-            <dt>{row.label}</dt>
+            <dt>{t[row.labelKey]}</dt>
             <dd>{row.format(results[row.key])}</dd>
           </div>
         ))}
